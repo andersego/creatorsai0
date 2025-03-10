@@ -56,8 +56,13 @@ const Dashboard = () => {
         description: "Your personalized mission is ready",
       });
       
-      // Navigate to the mission page
-      navigate(`/mission/${mission.id}`);
+      // Ensure the mission exists before navigating
+      if (mission && mission.id) {
+        // Navigate to the mission page
+        navigate(`/mission/${mission.id}`);
+      } else {
+        throw new Error("Failed to generate mission");
+      }
     } catch (error: any) {
       console.error("Mission generation error:", error);
       toast({
@@ -65,6 +70,7 @@ const Dashboard = () => {
         description: error.message || "There was a problem generating your mission",
         variant: "destructive",
       });
+    } finally {
       setIsGenerating(false);
     }
   };

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/layout";
@@ -48,7 +47,17 @@ const Mission = () => {
     };
     
     loadMission();
-  }, [id, navigate]);
+    
+    if (!mission) {
+      const retryTimeout = setTimeout(() => {
+        if (!mission) {
+          loadMission();
+        }
+      }, 500);
+      
+      return () => clearTimeout(retryTimeout);
+    }
+  }, [id, navigate, mission]);
 
   const handleCompleteMission = async () => {
     if (!mission || !user) return;
@@ -58,7 +67,6 @@ const Mission = () => {
       const updatedUser = await missions.completeMission(mission.id);
       updateUser(updatedUser);
       
-      // Update local mission state
       setMission({ ...mission, completed: true });
       
       toast({

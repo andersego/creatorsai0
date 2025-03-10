@@ -69,6 +69,8 @@ export const payment = {
 
 // Simulated API for mission generation
 export const missions = {
+  lastGeneratedMission: null as Mission | null,
+  
   // Use mockup data instead of simulating an API call
   generateMission: async (imageUrl: string): Promise<Mission> => {
     // Deduct tokens
@@ -112,18 +114,21 @@ export const missions = {
       createdAt: new Date()
     };
     
+    // Store the mission in memory cache in case localStorage fails
+    missions.lastGeneratedMission = mission;
+    
     try {
       // Store mission in localStorage with quota management
       const storedMissions = localStorage.getItem("missions");
-      let missions = storedMissions ? JSON.parse(storedMissions) : [];
+      let missionsList = storedMissions ? JSON.parse(storedMissions) : [];
       
       // Keep only the most recent 20 missions to prevent storage overflow
-      if (missions.length >= 20) {
-        missions = missions.slice(-19); // Keep only the last 19 to add new one
+      if (missionsList.length >= 20) {
+        missionsList = missionsList.slice(-19); // Keep only the last 19 to add new one
       }
       
-      missions.push(mission);
-      localStorage.setItem("missions", JSON.stringify(missions));
+      missionsList.push(mission);
+      localStorage.setItem("missions", JSON.stringify(missionsList));
     } catch (error) {
       console.warn("Unable to save mission to localStorage, continuing without saving", error);
       // Still return the mission even if we can't save it
@@ -138,15 +143,24 @@ export const missions = {
     
     // Update mission
     const storedMissions = localStorage.getItem("missions");
-    if (!storedMissions) throw new Error("No missions found");
+    let missions = [];
+    let missionFound = false;
     
-    const missions = JSON.parse(storedMissions);
-    const missionIndex = missions.findIndex((m: Mission) => m.id === missionId);
+    if (storedMissions) {
+      missions = JSON.parse(storedMissions);
+      const missionIndex = missions.findIndex((m: Mission) => m.id === missionId);
+      
+      if (missionIndex !== -1) {
+        missions[missionIndex].completed = true;
+        missionFound = true;
+        localStorage.setItem("missions", JSON.stringify(missions));
+      }
+    }
     
-    if (missionIndex === -1) throw new Error("Mission not found");
-    
-    missions[missionIndex].completed = true;
-    localStorage.setItem("missions", JSON.stringify(missions));
+    // If not found in localStorage, check the last generated mission in memory
+    if (!missionFound && missions.lastGeneratedMission && missions.lastGeneratedMission.id === missionId) {
+      missions.lastGeneratedMission.completed = true;
+    }
     
     // Update user streak
     const today = new Date().toDateString();
@@ -175,18 +189,33 @@ export const missions = {
     if (!auth.currentUser) return [];
     
     const storedMissions = localStorage.getItem("missions");
-    if (!storedMissions) return [];
+    let allMissions = storedMissions ? JSON.parse(storedMissions) : [];
     
-    const allMissions = JSON.parse(storedMissions);
-    return allMissions.filter((m: Mission) => m.userId === auth.currentUser!.id);
+    // Filter by user ID
+    const userMissions = allMissions.filter((m: Mission) => m.userId === auth.currentUser!.id);
+    
+    // Add last generated mission if it exists and isn't already in the list
+    if (missions.lastGeneratedMission && 
+        missions.lastGeneratedMission.userId === auth.currentUser.id && 
+        !userMissions.some((m: Mission) => m.id === missions.lastGeneratedMission!.id)) {
+      userMissions.push(missions.lastGeneratedMission);
+    }
+    
+    return userMissions;
   },
   
   // Get specific mission
   getMission: (missionId: string): Mission | null => {
+    // First check in-memory cache for the last generated mission
+    if (missions.lastGeneratedMission && missions.lastGeneratedMission.id === missionId) {
+      return missions.lastGeneratedMission;
+    }
+    
+    // Then check localStorage
     const storedMissions = localStorage.getItem("missions");
     if (!storedMissions) return null;
     
-    const missions = JSON.parse(storedMissions);
-    return missions.find((m: Mission) => m.id === missionId) || null;
+    const missionsList = JSON.parse(storedMissions);
+    return missionsList.find((m: Mission) => m.id === missionId) || null;
   }
 };
