@@ -112,11 +112,22 @@ export const missions = {
       createdAt: new Date()
     };
     
-    // Store mission in localStorage
-    const storedMissions = localStorage.getItem("missions");
-    const missions = storedMissions ? JSON.parse(storedMissions) : [];
-    missions.push(mission);
-    localStorage.setItem("missions", JSON.stringify(missions));
+    try {
+      // Store mission in localStorage with quota management
+      const storedMissions = localStorage.getItem("missions");
+      let missions = storedMissions ? JSON.parse(storedMissions) : [];
+      
+      // Keep only the most recent 20 missions to prevent storage overflow
+      if (missions.length >= 20) {
+        missions = missions.slice(-19); // Keep only the last 19 to add new one
+      }
+      
+      missions.push(mission);
+      localStorage.setItem("missions", JSON.stringify(missions));
+    } catch (error) {
+      console.warn("Unable to save mission to localStorage, continuing without saving", error);
+      // Still return the mission even if we can't save it
+    }
     
     return mission;
   },
