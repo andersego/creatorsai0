@@ -43,6 +43,11 @@ const ImageUpload = ({ onImageSelected, className }: ImageUploadProps) => {
     }
   };
 
+  const handleSelectImage = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className={cn("w-full", className)}>
       <input
@@ -55,10 +60,7 @@ const ImageUpload = ({ onImageSelected, className }: ImageUploadProps) => {
       
       {!imagePreview ? (
         <div className="w-full aspect-[3/2] rounded-lg border-2 border-dashed flex flex-col items-center justify-center p-6 transition-all hover:border-primary/50">
-          <div 
-            onClick={() => fileInputRef.current?.click()}
-            className="cursor-pointer flex flex-col items-center justify-center text-center"
-          >
+          <div className="cursor-pointer flex flex-col items-center justify-center text-center">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-4">
               <Camera className="w-5 h-5 text-primary" />
             </div>
@@ -69,7 +71,7 @@ const ImageUpload = ({ onImageSelected, className }: ImageUploadProps) => {
             <Button 
               type="button" 
               variant="outline"
-              onClick={() => fileInputRef.current?.click()}
+              onClick={handleSelectImage}
               className="flex items-center gap-2"
             >
               <UploadCloud className="w-4 h-4" />
