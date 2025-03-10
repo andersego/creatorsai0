@@ -1,4 +1,3 @@
-
 import { Mission, User } from "@/types";
 
 // Simulated API for auth
@@ -70,7 +69,7 @@ export const payment = {
 
 // Simulated API for mission generation
 export const missions = {
-  // Simulate OpenAI call to generate mission
+  // Use mockup data instead of simulating an API call
   generateMission: async (imageUrl: string): Promise<Mission> => {
     // Deduct tokens
     if (!auth.currentUser) throw new Error("User not authenticated");
@@ -83,28 +82,43 @@ export const missions = {
     auth.currentUser = updatedUser;
     localStorage.setItem("user", JSON.stringify(updatedUser));
     
-    // In a real app, this would call OpenAI API
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mission: Mission = {
-          id: "mission-" + Math.random().toString(36).substring(2, 9),
-          userId: auth.currentUser!.id,
-          title: "Explore New Horizons",
-          description: "Based on your image, I notice you're in an environment with potential for discovery. Your mission today is to spend 30 minutes exploring a part of your surroundings you've never paid attention to before. Document at least one interesting discovery.",
-          imageUrl: imageUrl,
-          completed: false,
-          createdAt: new Date()
-        };
-        
-        // Store mission in localStorage
-        const storedMissions = localStorage.getItem("missions");
-        const missions = storedMissions ? JSON.parse(storedMissions) : [];
-        missions.push(mission);
-        localStorage.setItem("missions", JSON.stringify(missions));
-        
-        resolve(mission);
-      }, 2000);
-    });
+    // Generate mockup mission data immediately
+    const missionTitles = [
+      "Explore Your Surroundings",
+      "Capture a New Perspective",
+      "Connect with Nature",
+      "Rediscover Your Neighborhood",
+      "Find Hidden Beauty"
+    ];
+    
+    const missionDescriptions = [
+      "Based on your image, I notice you're in an environment with potential for discovery. Your mission today is to spend 30 minutes exploring a part of your surroundings you've never paid attention to before. Document at least one interesting discovery.",
+      "Your environment has fascinating angles and perspectives. Your mission is to take 3 photos of the same subject from completely different angles, revealing something new each time.",
+      "I see elements of nature in your image. Your mission is to find and document 5 different living things within 100 meters of where you are right now.",
+      "The setting in your image suggests a familiar place. Your mission is to walk a new route through your neighborhood and discover at least one place you've never noticed before.",
+      "There's beauty hidden in plain sight. Your mission is to find and photograph 3 things most people would walk past without noticing their unique qualities."
+    ];
+    
+    // Randomly select a title and description
+    const randomIndex = Math.floor(Math.random() * missionTitles.length);
+    
+    const mission: Mission = {
+      id: "mission-" + Math.random().toString(36).substring(2, 9),
+      userId: auth.currentUser!.id,
+      title: missionTitles[randomIndex],
+      description: missionDescriptions[randomIndex],
+      imageUrl: imageUrl,
+      completed: false,
+      createdAt: new Date()
+    };
+    
+    // Store mission in localStorage
+    const storedMissions = localStorage.getItem("missions");
+    const missions = storedMissions ? JSON.parse(storedMissions) : [];
+    missions.push(mission);
+    localStorage.setItem("missions", JSON.stringify(missions));
+    
+    return mission;
   },
   
   // Mark mission as completed

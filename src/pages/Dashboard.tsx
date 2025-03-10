@@ -34,6 +34,7 @@ const Dashboard = () => {
           description: "Please sign in to generate missions",
           variant: "destructive",
         });
+        setIsGenerating(false);
         return;
       }
       
@@ -43,9 +44,11 @@ const Dashboard = () => {
           description: "Please subscribe to get more tokens",
           variant: "destructive",
         });
+        setIsGenerating(false);
         return;
       }
       
+      // Generate mission with mockup data
       const mission = await missions.generateMission(uploadedImage);
       
       toast({
@@ -62,7 +65,6 @@ const Dashboard = () => {
         description: error.message || "There was a problem generating your mission",
         variant: "destructive",
       });
-    } finally {
       setIsGenerating(false);
     }
   };
