@@ -10,9 +10,10 @@ interface MissionCardProps {
   mission: Mission;
   onComplete?: (missionId: string) => void;
   className?: string;
+  onClick?: () => void;
 }
 
-const MissionCard = ({ mission, onComplete, className }: MissionCardProps) => {
+const MissionCard = ({ mission, onComplete, className, onClick }: MissionCardProps) => {
   const formattedDate = new Date(mission.createdAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -20,7 +21,10 @@ const MissionCard = ({ mission, onComplete, className }: MissionCardProps) => {
   });
 
   return (
-    <Card className={cn("overflow-hidden transition-all duration-300", className)}>
+    <Card 
+      className={cn("overflow-hidden transition-all duration-300", className)}
+      onClick={onClick}
+    >
       <div className="aspect-[16/9] overflow-hidden">
         <img
           src={mission.imageUrl}
@@ -50,7 +54,10 @@ const MissionCard = ({ mission, onComplete, className }: MissionCardProps) => {
           <Button
             className="w-full"
             variant="default"
-            onClick={() => onComplete(mission.id)}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent the card onClick from firing
+              onComplete(mission.id);
+            }}
           >
             Mark as Completed
           </Button>
