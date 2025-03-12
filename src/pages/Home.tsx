@@ -1,13 +1,66 @@
 
+import { useState } from "react";
 import Layout from "@/components/layout/layout";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowRight, Camera, Star, TargetIcon } from "lucide-react";
+import { ArrowRight, Camera, Loader2, Star, TargetIcon, Zap } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
+import ImageUpload from "@/components/ui/image-upload";
+import { Card, CardContent } from "@/components/ui/card";
+import { missions } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const Home = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [missionType, setMissionType] = useState<"random" | "creator">("random");
+
+  const handleImageSelected = (imageUrl: string) => {
+    setUploadedImage(imageUrl);
+  };
+
+  const handleGenerateMission = async () => {
+    if (!uploadedImage) return;
+    
+    try {
+      setIsGenerating(true);
+      
+      // Generate mission with mockup data
+      const mission = await missions.generateMission(uploadedImage, missionType);
+      
+      toast({
+        title: "Mission generated!",
+        description: "Your personalized mission is ready",
+      });
+      
+      // Ensure the mission exists before navigating
+      if (mission && mission.id) {
+        // Navigate to the mission page
+        navigate(`/mission/${mission.id}`);
+      } else {
+        throw new Error("Failed to generate mission");
+      }
+    } catch (error: any) {
+      console.error("Mission generation error:", error);
+      toast({
+        title: "Mission generation failed",
+        description: error.message || "There was a problem generating your mission",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <Layout>
@@ -28,10 +81,62 @@ const Home = () => {
             Upload photos of your surroundings and receive AI-generated missions
             that inspire you to explore, create, and grow every day.
           </p>
+
+          <div className="max-w-xl mx-auto mb-10">
+            <Card>
+              <CardContent className="p-6 space-y-4">
+                <ImageUpload onImageSelected={handleImageSelected} />
+                
+                {uploadedImage && (
+                  <div className="space-y-4">
+                    <div className="flex flex-col space-y-2">
+                      <label className="text-sm font-medium">Mission Type</label>
+                      <Select
+                        value={missionType}
+                        onValueChange={(value) => setMissionType(value as "random" | "creator")}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select mission type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="random">Random</SelectItem>
+                          <SelectItem value="creator">Creator Growth</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {missionType === "random" 
+                          ? "Generate a random mission based on your surroundings"
+                          : "Get a mission to help grow your creator skills"}
+                      </p>
+                    </div>
+                    
+                    <Button
+                      onClick={handleGenerateMission}
+                      disabled={isGenerating}
+                      className="w-full"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Generating mission...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="mr-2 h-4 w-4" />
+                          Generate mission
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="group">
               <Link to={user ? "/dashboard" : "/login"}>
-                Get Started
+                Go to Dashboard
                 <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
             </Button>

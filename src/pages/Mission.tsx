@@ -1,12 +1,13 @@
+
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import Layout from "@/components/layout/layout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
 import { missions } from "@/lib/api";
 import { Mission as MissionType } from "@/types";
 import { toast } from "@/components/ui/use-toast";
-import { ArrowLeft, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, LogIn } from "lucide-react";
 import { motion } from "framer-motion";
 
 const Mission = () => {
@@ -22,6 +23,7 @@ const Mission = () => {
     
     const loadMission = () => {
       try {
+        // Comprobamos si la misión está en cache o en localStorage
         const missionData = missions.getMission(id);
         if (!missionData) {
           toast({
@@ -29,7 +31,7 @@ const Mission = () => {
             description: "The mission you're looking for doesn't exist",
             variant: "destructive",
           });
-          navigate("/dashboard");
+          navigate("/");
           return;
         }
         
@@ -60,7 +62,16 @@ const Mission = () => {
   }, [id, navigate, mission]);
 
   const handleCompleteMission = async () => {
-    if (!mission || !user) return;
+    if (!mission) return;
+    
+    // Verificamos si el usuario está logueado
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "You need to login to complete missions",
+      });
+      return;
+    }
     
     try {
       setCompleting(true);
@@ -104,7 +115,7 @@ const Mission = () => {
             The mission you're looking for doesn't exist
           </p>
           <Button asChild>
-            <a href="/dashboard">Back to Dashboard</a>
+            <a href="/">Back to Home</a>
           </Button>
         </div>
       </Layout>
@@ -139,12 +150,17 @@ const Mission = () => {
           </div>
           
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-wrap justify-between items-center gap-2">
               <h1 className="text-3xl font-bold">{mission.title}</h1>
               {mission.completed && (
                 <div className="flex items-center text-green-500 bg-green-50 px-3 py-1 rounded-full text-sm font-medium">
                   <CheckCircle className="w-4 h-4 mr-1" />
                   Completed
+                </div>
+              )}
+              {mission.missionType && (
+                <div className="flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium">
+                  {mission.missionType === "creator" ? "Creator Growth" : "Random"}
                 </div>
               )}
             </div>
@@ -154,21 +170,39 @@ const Mission = () => {
             </p>
             
             {!mission.completed && (
-              <Button 
-                onClick={handleCompleteMission} 
-                disabled={completing} 
-                className="mt-6"
-                size="lg"
-              >
-                {completing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Completing...
-                  </>
-                ) : (
-                  "Mark as Completed"
-                )}
-              </Button>
+              user ? (
+                <Button 
+                  onClick={handleCompleteMission} 
+                  disabled={completing} 
+                  className="mt-6"
+                  size="lg"
+                >
+                  {completing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Completing...
+                    </>
+                  ) : (
+                    "Mark as Completed"
+                  )}
+                </Button>
+              ) : (
+                <div className="mt-6 space-y-2">
+                  <Button 
+                    asChild
+                    size="lg"
+                    className="w-full sm:w-auto"
+                  >
+                    <Link to="/login">
+                      <LogIn className="mr-2 h-4 w-4" />
+                      Login to Complete Mission
+                    </Link>
+                  </Button>
+                  <p className="text-sm text-muted-foreground">
+                    You need to be logged in to complete missions and track your progress
+                  </p>
+                </div>
+              )
             )}
           </div>
         </motion.div>
