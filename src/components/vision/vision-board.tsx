@@ -1,10 +1,11 @@
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Heart, Lightbulb, Target, Compass, SparklesIcon } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import { motion } from "framer-motion";
 import type { VisionParameter } from "@/types";
+import { Button } from "@/components/ui/button";
 
 interface VisionImageData {
   imageUrl: string;
@@ -48,150 +49,131 @@ export const VisionBoard = () => {
     return param?.description || "No vision defined yet";
   };
 
-  // If we have a generated vision image, show it as the main focus
-  if (visionImage) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="space-y-6"
-      >
-        <Card className="overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-            <CardTitle className="text-center text-2xl">Your Vision</CardTitle>
-            <CardDescription className="text-center text-white/80">
-              Created {new Date(visionImage.createdAt).toLocaleDateString()}
-            </CardDescription>
-          </CardHeader>
-          <div className="relative">
+  // Display the beautiful vision with the image
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="space-y-6"
+    >
+      <Card className="overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100 border-none shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-purple-500 to-pink-500 text-white pb-10">
+          <CardTitle className="text-center text-3xl font-bold">Tu Visión</CardTitle>
+          <CardDescription className="text-center text-white/90 text-lg mt-2">
+            {visionImage && new Date(visionImage.createdAt).toLocaleDateString('es-ES', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            })}
+          </CardDescription>
+        </CardHeader>
+        
+        <div className="relative -mt-6 mx-auto max-w-3xl px-4">
+          <div className="rounded-xl overflow-hidden shadow-2xl">
             <img 
-              src={visionImage.imageUrl} 
-              alt="Your Vision"
-              className="w-full object-cover" 
+              src={visionImage?.imageUrl} 
+              alt="Tu Visión"
+              className="w-full object-cover aspect-video" 
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end justify-center p-6">
-              <p className="text-white text-lg text-center font-medium max-w-2xl">
-                {visionImage.summary}
+          </div>
+        </div>
+        
+        <CardContent className="pt-10 pb-8 px-8">
+          <div className="text-center mb-8">
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="text-xl md:text-2xl font-medium text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600"
+            >
+              {visionImage?.summary}
+            </motion.p>
+          </div>
+          
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            {[
+              {
+                label: "Lo que amas",
+                icon: Heart,
+                color: "text-red-500",
+                type: "passion",
+                emoji: "🔹",
+                gradient: "bg-gradient-to-br from-red-50 to-pink-50 border-red-100",
+              },
+              {
+                label: "Lo que el mundo necesita",
+                icon: Compass,
+                color: "text-blue-500",
+                type: "mission",
+                emoji: "🔹",
+                gradient: "bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-100",
+              },
+              {
+                label: "En lo que eres bueno",
+                icon: Target,
+                color: "text-purple-500",
+                type: "profession",
+                emoji: "🔹",
+                gradient: "bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100",
+              },
+              {
+                label: "Por lo que puedes ser recompensado",
+                icon: Lightbulb,
+                color: "text-green-500",
+                type: "vocation",
+                emoji: "🔹",
+                gradient: "bg-gradient-to-br from-green-50 to-emerald-50 border-green-100",
+              },
+            ].map(({ label, icon: Icon, color, type, emoji, gradient }) => (
+              <motion.div
+                key={type}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 + parseInt(type === "passion" ? "0" : type === "mission" ? "1" : type === "profession" ? "2" : "3") * 0.1, duration: 0.4 }}
+                className={`${gradient} p-5 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300`}
+              >
+                <div className="flex items-start gap-3 mb-2">
+                  <span className="text-lg">{emoji}</span>
+                  <div>
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Icon className={`h-4 w-4 ${color}`} />
+                      {label}
+                    </h3>
+                    <p className="text-sm mt-1">
+                      {getVisionText(type)}
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+          
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
+            className="mt-8 text-center"
+          >
+            <div className="max-w-xl mx-auto p-5 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border border-indigo-100">
+              <div className="flex items-center gap-2 mb-2 justify-center">
+                <SparklesIcon className="h-5 w-5 text-indigo-500" />
+                <h3 className="font-medium text-indigo-700">Tu Ikigai</h3>
+              </div>
+              <p className="text-sm text-indigo-800">
+                No solo {getVisionText("passion").split(" ").slice(0, 3).join(" ")}, 
+                creas un puente entre {getVisionText("mission").split(" ").slice(0, 3).join(" ")}, 
+                inspirando a otros a valorar lo que haces con tu talento para {getVisionText("profession").split(" ").slice(0, 2).join(" ")}. 🌍💚
               </p>
             </div>
-          </div>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-2 gap-4">
-              {[
-                {
-                  label: "What You Love",
-                  icon: Heart,
-                  color: "text-red-500",
-                  type: "passion",
-                  gradient: "bg-gradient-to-br from-red-100 to-pink-100",
-                },
-                {
-                  label: "What the World Needs",
-                  icon: Compass,
-                  color: "text-blue-500",
-                  type: "mission",
-                  gradient: "bg-gradient-to-br from-blue-100 to-cyan-100",
-                },
-                {
-                  label: "What You're Good At",
-                  icon: Target,
-                  color: "text-purple-500",
-                  type: "profession",
-                  gradient: "bg-gradient-to-br from-purple-100 to-indigo-100",
-                },
-                {
-                  label: "What You Can Be Valued For",
-                  icon: Lightbulb,
-                  color: "text-green-500",
-                  type: "vocation",
-                  gradient: "bg-gradient-to-br from-green-100 to-emerald-100",
-                },
-              ].map(({ label, icon: Icon, color, type, gradient }) => (
-                <div
-                  key={type}
-                  className={`${gradient} p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300`}
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Icon className={`h-5 w-5 ${color}`} />
-                    <h3 className="font-medium">{label}</h3>
-                  </div>
-                  <p className="text-sm">
-                    {getVisionText(type)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
-
-  // If no vision image yet, show the standard vision board
-  return (
-    <Card className="relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5" />
-      <CardContent className="relative p-6">
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            {
-              label: "What You Love",
-              icon: Heart,
-              color: "text-red-500",
-              type: "passion",
-              gradient: "bg-gradient-to-br from-red-100 to-pink-100",
-              image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158"
-            },
-            {
-              label: "What the World Needs",
-              icon: Compass,
-              color: "text-blue-500",
-              type: "mission",
-              gradient: "bg-gradient-to-br from-blue-100 to-cyan-100",
-              image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c"
-            },
-            {
-              label: "What You're Good At",
-              icon: Target,
-              color: "text-purple-500",
-              type: "profession",
-              gradient: "bg-gradient-to-br from-purple-100 to-indigo-100",
-              image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f"
-            },
-            {
-              label: "What You Can Be Valued For",
-              icon: Lightbulb,
-              color: "text-green-500",
-              type: "vocation",
-              gradient: "bg-gradient-to-br from-green-100 to-emerald-100",
-              image: "https://images.unsplash.com/photo-1581090464777-f3220bbe1b8b"
-            },
-          ].map(({ label, icon: Icon, color, type, gradient, image }) => (
-            <div
-              key={type}
-              className={`${gradient} p-4 rounded-lg border shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden relative min-h-[200px]`}
-            >
-              <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
-                <img
-                  src={image}
-                  alt={label}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon className={`h-5 w-5 ${color}`} />
-                  <h3 className="font-medium">{label}</h3>
-                </div>
-                <p className={`text-sm ${getVisionText(type) === "No vision defined yet" ? "text-muted-foreground" : "text-foreground font-medium"}`}>
-                  {getVisionText(type)}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };

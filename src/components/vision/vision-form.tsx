@@ -8,7 +8,11 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import type { VisionParameter } from "@/types";
 
-export const VisionForm = () => {
+interface VisionFormProps {
+  onVisionGenerated: () => void;
+}
+
+export const VisionForm = ({ onVisionGenerated }: VisionFormProps) => {
   const { user, updateUser } = useAuth();
   const [parameters, setParameters] = useState({
     passion: "",
@@ -24,41 +28,11 @@ export const VisionForm = () => {
     setParameters(prev => ({ ...prev, [type]: e.target.value }));
   };
 
-  const handleSave = () => {
+  const generateVision = async () => {
     if (!user) {
       toast({
         title: "Login required",
-        description: "Please login to save your vision",
-      });
-      return;
-    }
-
-    // Create vision parameters objects
-    const visionParams: VisionParameter[] = Object.entries(parameters).map(([type, description]) => ({
-      id: crypto.randomUUID(),
-      userId: user.id,
-      type: type as "passion" | "mission" | "profession" | "vocation",
-      description,
-      updatedAt: new Date()
-    }));
-
-    // Save to localStorage for now
-    localStorage.setItem(`vision-${user.id}`, JSON.stringify(visionParams));
-    
-    toast({
-      title: "Vision updated",
-      description: "Your vision has been saved successfully",
-    });
-
-    // Force a re-render of the VisionBoard
-    window.dispatchEvent(new Event('visionUpdated'));
-  };
-
-  const generateVisionImage = async () => {
-    if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to generate your vision image",
+        description: "Please login to generate your vision",
       });
       return;
     }
@@ -75,8 +49,8 @@ export const VisionForm = () => {
     // Check if all parameters are filled
     if (Object.values(parameters).some(param => !param.trim())) {
       toast({
-        title: "Incomplete vision",
-        description: "Please fill in all four vision parameters first",
+        title: "Visión incompleta",
+        description: "Por favor completa los cuatro parámetros de tu visión",
         variant: "destructive"
       });
       return;
@@ -85,8 +59,20 @@ export const VisionForm = () => {
     try {
       setIsGenerating(true);
 
+      // Create vision parameters objects
+      const visionParams: VisionParameter[] = Object.entries(parameters).map(([type, description]) => ({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        type: type as "passion" | "mission" | "profession" | "vocation",
+        description,
+        updatedAt: new Date()
+      }));
+
+      // Save vision parameters to localStorage
+      localStorage.setItem(`vision-${user.id}`, JSON.stringify(visionParams));
+
       // Generate a combined vision description
-      const visionSummary = `A person who loves ${parameters.passion}, aims to ${parameters.mission}, excels at ${parameters.profession}, and creates value through ${parameters.vocation}.`;
+      const visionSummary = `✨ "${parameters.passion} a través de ${parameters.mission}, utilizando tu talento para ${parameters.profession} y creando valor mediante ${parameters.vocation}" ✨`;
       
       // In a real app, we would call an image generation API here
       // For now, let's use a placeholder image based on a gradient
@@ -126,7 +112,7 @@ export const VisionForm = () => {
         ctx.font = 'bold 24px Arial';
         ctx.fillStyle = 'white';
         ctx.textAlign = 'center';
-        ctx.fillText('YOUR VISION', 400, 150);
+        ctx.fillText('TU VISIÓN', 400, 150);
         
         // Convert to data URL
         const visionImageUrl = canvas.toDataURL('image/png');
@@ -149,9 +135,12 @@ export const VisionForm = () => {
         updateUser(updatedUser);
         
         toast({
-          title: "Vision image created",
-          description: "Your vision has been transformed into an inspiring image",
+          title: "¡Visión generada!",
+          description: "Tu visión ha sido transformada en una imagen inspiradora",
         });
+        
+        // Notify the parent component that vision has been generated
+        onVisionGenerated();
         
         // Force a re-render of the VisionBoard
         window.dispatchEvent(new Event('visionImageCreated'));
@@ -159,8 +148,8 @@ export const VisionForm = () => {
     } catch (error) {
       console.error("Error generating vision image:", error);
       toast({
-        title: "Generation failed",
-        description: "There was a problem creating your vision image",
+        title: "Falló la generación",
+        description: "Hubo un problema al crear tu imagen de visión",
         variant: "destructive"
       });
     } finally {
@@ -171,27 +160,27 @@ export const VisionForm = () => {
   const parameterConfig = [
     {
       type: "passion" as const,
-      label: "What You Love",
+      label: "Lo que amas",
       icon: Heart,
-      placeholder: "What activities make you lose track of time?",
+      placeholder: "¿Qué actividades te hacen perder la noción del tiempo?",
     },
     {
       type: "mission" as const,
-      label: "What the World Needs",
+      label: "Lo que el mundo necesita",
       icon: Compass,
-      placeholder: "What problems do you want to solve?",
+      placeholder: "¿Qué problemas quieres resolver?",
     },
     {
       type: "profession" as const,
-      label: "What You're Good At",
+      label: "En lo que eres bueno",
       icon: Target,
-      placeholder: "What are your natural talents and skills?",
+      placeholder: "¿Cuáles son tus talentos y habilidades naturales?",
     },
     {
       type: "vocation" as const,
-      label: "What You Can Be Valued For",
+      label: "Por lo que puedes ser recompensado",
       icon: Lightbulb,
-      placeholder: "How can you create value for others?",
+      placeholder: "¿Cómo puedes crear valor para los demás?",
     },
   ];
 
@@ -214,25 +203,21 @@ export const VisionForm = () => {
               />
             </div>
           ))}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button onClick={handleSave} className="flex-1">
-              Save Vision
-            </Button>
-            <Button 
-              onClick={generateVisionImage} 
-              className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              disabled={isGenerating || !user}
-            >
-              {isGenerating ? (
-                <>Generating<span className="animate-pulse">...</span></>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-1" />
-                  Generate Image (10 Tokens)
-                </>
-              )}
-            </Button>
-          </div>
+          <Button 
+            onClick={generateVision} 
+            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+            disabled={isGenerating || !user}
+            size="lg"
+          >
+            {isGenerating ? (
+              <>Generando<span className="animate-pulse">...</span></>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-1" />
+                Generar Visión (10 Tokens)
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>

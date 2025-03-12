@@ -5,7 +5,6 @@ import { VisionForm } from "@/components/vision/vision-form";
 import { VisionBoard } from "@/components/vision/vision-board";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/auth-context";
-import { Button } from "@/components/ui/button";
 
 const Vision = () => {
   const { user } = useAuth();
@@ -17,6 +16,11 @@ const Vision = () => {
       if (user) {
         const savedVisionImage = localStorage.getItem(`vision-image-${user.id}`);
         setHasVisionImage(!!savedVisionImage);
+        
+        // If user already has a vision image, show it instead of the form
+        if (!!savedVisionImage) {
+          setShowForm(false);
+        }
       }
     };
 
@@ -37,28 +41,16 @@ const Vision = () => {
           transition={{ duration: 0.5 }}
           className="space-y-8"
         >
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">My Vision</h1>
-              <p className="text-muted-foreground mt-1">
-                Define your vision through these four key areas
-              </p>
-            </div>
-            
-            {hasVisionImage && (
-              <Button 
-                variant="outline" 
-                onClick={() => setShowForm(!showForm)}
-                className="self-start"
-              >
-                {showForm ? "View Vision Image" : "Edit Vision"}
-              </Button>
-            )}
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Mi Visión</h1>
+            <p className="text-muted-foreground mt-1">
+              Define tu visión a través de estas cuatro áreas clave
+            </p>
           </div>
 
           <div className="grid gap-6">
-            {(showForm || !hasVisionImage) && <VisionForm />}
-            {(!showForm || !hasVisionImage) && <VisionBoard />}
+            {showForm && <VisionForm onVisionGenerated={() => setShowForm(false)} />}
+            {!showForm && <VisionBoard />}
           </div>
         </motion.div>
       </div>
