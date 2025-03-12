@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/auth-context";
@@ -44,12 +43,14 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
           <div className="flex space-x-1">
-            <NavLink to="/" label="Home" active={location.pathname === "/"} />
-            {user && (
+            {user ? (
               <>
                 <NavLink to="/dashboard" label="Dashboard" active={location.pathname === "/dashboard"} />
                 <NavLink to="/missions" label="My Missions" active={location.pathname === "/missions"} />
+                <NavLink to="/vision" label="My Vision" active={location.pathname === "/vision"} />
               </>
+            ) : (
+              <NavLink to="/" label="Home" active={location.pathname === "/"} />
             )}
           </div>
 

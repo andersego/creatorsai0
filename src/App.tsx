@@ -29,7 +29,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/missions" element={<Missions />} />
               <Route path="/mission/:id" element={<Mission />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="/vision" element={<Vision />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
