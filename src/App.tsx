@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -10,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Missions from "./pages/Missions";
 import Mission from "./pages/Mission";
+import Vision from "./pages/Vision";
 import NotFound from "./pages/NotFound";
 import { MotionConfig } from "framer-motion";
 
