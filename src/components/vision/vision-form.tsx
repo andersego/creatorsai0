@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Heart, Lightbulb, Target, Compass } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
+import type { VisionParameter } from "@/types";
 
 export const VisionForm = () => {
   const { user } = useAuth();
@@ -30,11 +30,26 @@ export const VisionForm = () => {
       });
       return;
     }
-    // Here we would save to localStorage or backend
+
+    // Create vision parameters objects
+    const visionParams: VisionParameter[] = Object.entries(parameters).map(([type, description]) => ({
+      id: crypto.randomUUID(),
+      userId: user.id,
+      type: type as "passion" | "mission" | "profession" | "vocation",
+      description,
+      updatedAt: new Date()
+    }));
+
+    // Save to localStorage for now
+    localStorage.setItem(`vision-${user.id}`, JSON.stringify(visionParams));
+    
     toast({
       title: "Vision updated",
       description: "Your vision has been saved successfully",
     });
+
+    // Force a re-render of the VisionBoard
+    window.dispatchEvent(new Event('visionUpdated'));
   };
 
   const parameterConfig = [
