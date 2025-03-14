@@ -74,77 +74,36 @@ export const VisionForm = ({ onVisionGenerated }: VisionFormProps) => {
       // Generate a combined vision description
       const visionSummary = `✨ "${parameters.passion} a través de ${parameters.mission}, utilizando tu talento para ${parameters.profession} y creando valor mediante ${parameters.vocation}" ✨`;
       
-      // In a real app, we would call an image generation API here
-      // For now, let's use a placeholder image based on a gradient
-      const gradients = [
-        "linear-gradient(to right, #ff9a9e, #fad0c4)",
-        "linear-gradient(to right, #a1c4fd, #c2e9fb)",
-        "linear-gradient(to right, #d4fc79, #96e6a1)",
-        "linear-gradient(to right, #f6d365, #fda085)",
-        "linear-gradient(to right, #fbc2eb, #a6c1ee)"
-      ];
+      // En lugar de generar una imagen, usamos una imagen de muestra predefinida
+      const sampleImageUrl = "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=800&q=80";
       
-      // Select a random gradient
-      const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];
+      // Save the image URL and summary to localStorage
+      const visionImageData = {
+        imageUrl: sampleImageUrl,
+        summary: visionSummary,
+        createdAt: new Date(),
+      };
       
-      // Create a canvas to generate the image
-      const canvas = document.createElement('canvas');
-      canvas.width = 800;
-      canvas.height = 600;
-      const ctx = canvas.getContext('2d');
+      localStorage.setItem(`vision-image-${user.id}`, JSON.stringify(visionImageData));
       
-      if (ctx) {
-        // Create gradient background
-        const gradient = ctx.createLinearGradient(0, 0, 800, 600);
-        gradient.addColorStop(0, randomGradient.split(', ')[1].slice(0, -1));
-        gradient.addColorStop(1, randomGradient.split(', ')[2].slice(0, -1));
-        ctx.fillStyle = gradient;
-        ctx.fillRect(0, 0, 800, 600);
-        
-        // Add some artistic elements
-        ctx.beginPath();
-        ctx.arc(400, 300, 200, 0, 2 * Math.PI);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.lineWidth = 15;
-        ctx.stroke();
-        
-        // Add text
-        ctx.font = 'bold 24px Arial';
-        ctx.fillStyle = 'white';
-        ctx.textAlign = 'center';
-        ctx.fillText('TU VISIÓN', 400, 150);
-        
-        // Convert to data URL
-        const visionImageUrl = canvas.toDataURL('image/png');
-        
-        // Save the image URL and summary to localStorage
-        const visionImageData = {
-          imageUrl: visionImageUrl,
-          summary: visionSummary,
-          createdAt: new Date(),
-        };
-        
-        localStorage.setItem(`vision-image-${user.id}`, JSON.stringify(visionImageData));
-        
-        // Update user tokens
-        const updatedUser = {
-          ...user,
-          tokens: user.tokens - 10
-        };
-        
-        updateUser(updatedUser);
-        
-        toast({
-          title: "¡Visión generada!",
-          description: "Tu visión ha sido transformada en una imagen inspiradora",
-        });
-        
-        // Notify the parent component that vision has been generated
-        onVisionGenerated();
-        
-        // Force a re-render of the VisionBoard
-        window.dispatchEvent(new Event('visionImageCreated'));
-      }
+      // Update user tokens
+      const updatedUser = {
+        ...user,
+        tokens: user.tokens - 10
+      };
+      
+      updateUser(updatedUser);
+      
+      toast({
+        title: "¡Visión generada!",
+        description: "Tu visión ha sido transformada en una imagen inspiradora",
+      });
+      
+      // Notify the parent component that vision has been generated
+      onVisionGenerated();
+      
+      // Force a re-render of the VisionBoard
+      window.dispatchEvent(new Event('visionImageCreated'));
     } catch (error) {
       console.error("Error generating vision image:", error);
       toast({
